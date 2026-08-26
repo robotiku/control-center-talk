@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Control Center in Ten Minutes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #F7F7F4; --panel: #FFFFFF; --panel-2: #ECEDF1;
+    --ink: #171B26; --ink-2: #4A5266; --ink-3: #8A91A3; --line: #D9DBE3;
+    --accent: #FFDC0F; --accent-ink: #171B26; --accent-soft: #FFF4B8;
+    --warn: #D2542F;
+    --shadow: 0 1px 2px rgba(23,27,38,.06), 0 8px 24px rgba(23,27,38,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #12151D; --panel: #1A1E29; --panel-2: #232837;
+      --ink: #F2F3F6; --ink-2: #B4B9C7; --ink-3: #7B8296; --line: #2F3547;
+      --accent: #FFDC0F; --accent-ink: #171B26; --accent-soft: #3A3510;
+      --warn: #F07A55;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #12151D; --panel: #1A1E29; --panel-2: #232837;
+    --ink: #F2F3F6; --ink-2: #B4B9C7; --ink-3: #7B8296; --line: #2F3547;
+    --accent: #FFDC0F; --accent-ink: #171B26; --accent-soft: #3A3510;
+    --warn: #F07A55;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--ground); color: var(--ink);
+    font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    font-size: clamp(14px, 1.35vw, 22px); line-height: 1.45; overflow: hidden;
+  }
+  .display { font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; letter-spacing: -0.01em; text-wrap: balance; }
+
+  .deck { position: relative; width: 100vw; height: 100vh; }
+  .slide { position: absolute; inset: 0; display: none; padding: clamp(28px, 5vh, 64px) clamp(28px, 6vw, 96px); flex-direction: column; }
+  .slide.active { display: flex; }
+  .eyebrow { display: flex; align-items: center; gap: .8em; font-family: "IBM Plex Mono", Menlo, monospace; font-size: .62em; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+  .eyebrow::before { content: ""; width: 1.6em; height: .55em; background: var(--accent); }
+  h1, h2 { margin: .35em 0 .3em; line-height: 1.05; }
+  h1 { font-size: 3.4em; font-weight: 900; }
+  h2 { font-size: 2.3em; font-weight: 700; }
+  .lead { font-size: 1.15em; color: var(--ink-2); max-width: 32em; margin: 0; }
+  .body { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
+  .foot { display: flex; justify-content: space-between; gap: 2em; font-family: "IBM Plex Mono", Menlo, monospace; font-size: .6em; color: var(--ink-3); letter-spacing: .06em; }
+  mark { background: var(--accent); color: var(--accent-ink); padding: 0 .12em; }
+
+  /* "Alex on this slide" strip */
+  .me { display: grid; grid-template-columns: auto 1fr; gap: 1em; align-items: center; margin-top: 1.4em; background: var(--accent); color: var(--accent-ink); padding: .6em 1em; }
+  .me .k { font-family: "IBM Plex Mono", Menlo, monospace; font-size: .62em; letter-spacing: .12em; text-transform: uppercase; font-weight: 500; }
+  .me .v { font-size: .95em; font-weight: 500; }
+
+  .grid { display: grid; gap: 1em; }
+  .card { background: var(--panel); border: 1px solid var(--line); padding: 1em 1.1em; box-shadow: var(--shadow); }
+  .card h3 { margin: 0 0 .25em; font-size: 1em; font-weight: 600; }
+  .card p { margin: 0; color: var(--ink-2); font-size: .85em; }
+  .tag { display: inline-block; font-family: "IBM Plex Mono", Menlo, monospace; font-size: .6em; letter-spacing: .08em; text-transform: uppercase; padding: .2em .55em; border: 1px solid var(--line); color: var(--ink-2); }
+
+  /* slide 1 */
+  .s1 h1 { font-size: 4.2em; max-width: 14em; }
+  .s1 .who { display: flex; gap: 2.5em; margin-top: 1.5em; font-size: .9em; color: var(--ink-2); }
+  .s1 .who b { display: block; color: var(--ink); font-weight: 600; }
+
+  /* slide 2 */
+  .before-after { display: grid; grid-template-columns: 1.2fr auto 1fr; gap: 2em; align-items: center; }
+  .chaos { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6em; }
+  .ui { border: 1px solid var(--line); background: var(--panel); padding: .6em; font-size: .72em; box-shadow: var(--shadow); }
+  .ui .bar { height: .5em; margin-bottom: .5em; }
+  .ui .l { height: .3em; background: var(--panel-2); margin-top: .3em; }
+  .ui .name { font-weight: 600; margin-top: .4em; }
+  .ui .sub { color: var(--ink-3); font-size: .85em; }
+  .arrow { font-size: 2.5em; color: var(--ink-3); }
+  .one { border: 2px solid var(--ink); background: var(--panel); padding: 1em; box-shadow: var(--shadow); }
+  .one .top { height: .7em; background: var(--accent); margin: -1em -1em .8em; }
+  .one .doors { display: grid; grid-template-columns: 1fr 1fr; gap: .6em; margin-top: .8em; font-size: .78em; }
+  .one .door { border: 1px dashed var(--line); padding: .6em; }
+  .one .door b { display: block; }
+  .one .door span { color: var(--ink-3); font-family: "IBM Plex Mono", Menlo, monospace; font-size: .85em; }
+
+  /* slide 3: phone */
+  .phone-row { display: grid; grid-template-columns: auto 1fr; gap: 3em; align-items: center; }
+  .phone { width: 13em; border: .35em solid var(--ink); border-radius: 1.8em; background: var(--panel); padding: 1.7em .9em .9em; position: relative; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 1.2em; }
+  .phone::before { content: ""; position: absolute; top: .55em; left: 50%; transform: translateX(-50%); width: 3em; height: .4em; border-radius: .2em; background: var(--ink); }
+  .apps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6em; }
+  .app { aspect-ratio: 1; min-width: 0; border-radius: .6em; background: var(--panel-2); display: grid; place-items: center; font-family: "IBM Plex Mono", Menlo, monospace; font-size: .5em; text-align: center; color: var(--ink-2); padding: .3em; line-height: 1.2; overflow-wrap: anywhere; hyphens: auto; }
+  .app.hi { background: var(--accent); color: var(--accent-ink); font-weight: 500; }
+  .phone .os { border-top: 1px solid var(--line); padding-top: .6em; font-family: "IBM Plex Mono", Menlo, monospace; font-size: .5em; color: var(--ink-3); text-align: center; letter-spacing: .08em; }
+  .map { display: grid; grid-template-columns: auto 1fr; gap: .55em 1.4em; align-items: baseline; }
+  .map .k { font-family: "IBM Plex Mono", Menlo, monospace; font-size: .75em; color: var(--ink-3); text-transform: uppercase; letter-spacing: .08em; padding-top: .3em; }
+  .map .v { color: var(--ink-2); }
+  .map .v b { font-weight: 600; color: var(--ink); }
+
+  /* slide 4 */
+  .free { grid-template-columns: repeat(4, 1fr); }
+  .free .card { border-top: 4px solid var(--accent); }
+  .free .card small { display: block; margin-top: .5em; font-size: .75em; color: var(--ink-3); }
+
+  /* slide 5 */
+  .nums { grid-template-columns: repeat(4, 1fr); gap: 1.2em; }
+  .num { border-top: 1px solid var(--line); padding-top: .8em; }
+  .num .n { font-family: "Archivo", Arial, sans-serif; font-weight: 900; font-size: 3.6em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .num .n.hl { color: var(--accent-ink); background: var(--accent); display: inline-block; padding: 0 .15em; }
+  .num .l { margin-top: .4em; font-weight: 600; }
+  .num .d { color: var(--ink-3); font-size: .8em; }
+
+  /* slide 6: business example */
+  .story { display: grid; grid-template-columns: 1fr 1fr; gap: 2em; align-items: start; }
+  .timeline { display: grid; gap: .7em; }
+  .tl { display: grid; grid-template-columns: 6.5em 1fr; gap: 1em; align-items: baseline; border-bottom: 1px solid var(--line); padding-bottom: .6em; }
+  .tl .when { font-family: "IBM Plex Mono", Menlo, monospace; font-size: .72em; color: var(--ink-3); letter-spacing: .06em; }
+  .tl .what b { font-weight: 600; }
+  .tl .what { color: var(--ink-2); font-size: .92em; }
+  .wins { display: grid; gap: .8em; }
+  .win { border-left: 4px solid var(--accent); background: var(--panel); padding: .6em .9em; }
+  .win h3 { margin: 0 0 .15em; font-size: 1em; }
+  .win p { margin: 0; font-size: .82em; color: var(--ink-2); }
+
+  /* slide 7 */
+  .talk { display: grid; grid-template-columns: 1fr 1.1fr 1fr; grid-template-rows: auto auto; gap: .8em 1.2em; }
+  .plug { border: 2px solid var(--ink); background: var(--panel); padding: .9em 1em; box-shadow: var(--shadow); }
+  .plug .t { font-family: "IBM Plex Mono", Menlo, monospace; font-size: .6em; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+  .plug h3 { margin: .1em 0 .3em; font-size: 1.1em; }
+  .plug p { margin: 0; font-size: .82em; color: var(--ink-2); }
+  .bus { grid-column: 1 / -1; background: var(--accent); color: var(--accent-ink); padding: .7em 1em; font-weight: 600; text-align: center; }
+  .via { align-self: center; text-align: center; color: var(--ink-2); font-size: .85em; }
+  .via .x { display: block; font-family: "Archivo", Arial, sans-serif; font-weight: 900; font-size: 2em; color: var(--warn); line-height: 1; }
+  .rules { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1em; margin-top: 1.2em; font-size: .85em; color: var(--ink-2); }
+  .rules b { color: var(--ink); }
+
+  /* slide 8 */
+  .s8 .pitch { font-size: 1.3em; max-width: 32em; margin: 0; }
+  .asks { grid-template-columns: repeat(3, 1fr); margin-top: 1.4em; }
+  .asks .card { border-top: 4px solid var(--accent); }
+  .asks .card .q { font-style: italic; color: var(--ink); font-size: .95em; margin: 0 0 .4em; }
+  .s8 .big { font-size: 4.6em; }
+
+  /* chrome */
+  .hud { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); display: flex; gap: .45rem; z-index: 5; }
+  .hud button { width: .55rem; height: .55rem; border-radius: 50%; border: 0; background: var(--line); cursor: pointer; padding: 0; }
+  .hud button.on { background: var(--ink); width: 1.6rem; border-radius: .3rem; }
+  .hud button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .help { position: fixed; bottom: .9rem; right: 1.2rem; font-family: "IBM Plex Mono", Menlo, monospace; font-size: .62rem; color: var(--ink-3); letter-spacing: .06em; z-index: 5; }
+  .help kbd { border: 1px solid var(--line); padding: 0 .3em; border-radius: .2em; }
+  .theme { position: fixed; top: .9rem; right: 1.2rem; z-index: 5; font-family: "IBM Plex Mono", Menlo, monospace; font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; background: var(--panel); color: var(--ink-2); border: 1px solid var(--line); padding: .35rem .7rem; cursor: pointer; }
+  .theme:hover { color: var(--ink); border-color: var(--ink-3); }
+  .theme:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .notes { position: fixed; right: 0; top: 0; bottom: 0; width: min(28rem, 40vw); background: var(--panel); border-left: 1px solid var(--line); padding: 1.4rem 1.6rem; overflow-y: auto; font-size: .95rem; line-height: 1.55; transform: translateX(100%); transition: transform .25s; z-index: 6; box-shadow: var(--shadow); }
+  .notes.open { transform: none; }
+  .notes h4 { margin: 0 0 .6rem; font-family: "IBM Plex Mono", Menlo, monospace; font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+  .notes .time { float: right; color: var(--ink-3); }
+  .notes p { margin: 0 0 .8rem; }
+  .notes .cue { color: var(--ink-3); font-style: italic; }
+  @media (prefers-reduced-motion: reduce) { .notes { transition: none; } }
+
+  @media (max-width: 900px) {
+    body { font-size: 14px; overflow: auto; }
+    .deck { height: auto; }
+    .slide { position: static; display: flex; min-height: 100vh; }
+    .free, .nums, .asks, .rules { grid-template-columns: repeat(2, 1fr); }
+    .before-after, .phone-row, .talk, .story { grid-template-columns: 1fr; }
+    .arrow { transform: rotate(90deg); justify-self: center; }
+    .hud, .help, .notes, .theme { display: none; }
+  }
+  @media print {
+    body { overflow: visible; font-size: 15px; }
+    .deck { height: auto; }
+    .slide { position: static; display: flex; height: 100vh; page-break-after: always; }
+    .hud, .help, .notes, .theme { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+<!-- 1 -->
+<section class="slide s1 active" data-notes="n1">
+  <div class="eyebrow">Trustee Talks · Future Experts Edition · 2026</div>
+  <div class="body">
+    <h1 class="display">Every screen a merchant uses in <mark>app.etrusted.com</mark> is a plugin.</h1>
+    <p class="lead">Ten minutes on what the Control Center is, why it matters for the company, and where I fit in.</p>
+    <div class="who">
+      <div><b>Alexandr (Alex) Stoian</b>Technical expert, Control Center plugins</div>
+      <div><b>For</b>Product, sales, support, marketing, design, and everyone who is curious</div>
+    </div>
+  </div>
+  <div class="foot"><span>Control Center in ten minutes</span><span>1 / 8</span></div>
+</section>
+
+<!-- 2 -->
+<section class="slide" data-notes="n2">
+  <div class="eyebrow">Why</div>
+  <h2 class="display">In 2019 we had many front doors. Now we have one.</h2>
+  <div class="body">
+    <div class="before-after">
+      <div class="chaos">
+        <div class="ui"><div class="bar" style="background:#2E6FD9"></div><div class="l"></div><div class="l"></div><div class="name">My TS</div><div class="sub">own login · own look</div></div>
+        <div class="ui"><div class="bar" style="background:#7A3FBF"></div><div class="l"></div><div class="l"></div><div class="name">eTrusted Control Center</div><div class="sub">own login · own look</div></div>
+        <div class="ui"><div class="bar" style="background:#1F9E7A"></div><div class="l"></div><div class="l"></div><div class="name">Upgrade Center</div><div class="sub">own login · own look</div></div>
+        <div class="ui"><div class="bar" style="background:#C4432A"></div><div class="l"></div><div class="l"></div><div class="name">Guarantee UI</div><div class="sub">own login · own look</div></div>
+        <div class="ui"><div class="bar" style="background:#B58A00"></div><div class="l"></div><div class="l"></div><div class="name">Internal tools</div><div class="sub">one per team</div></div>
+        <div class="ui"><div class="bar" style="background:#666"></div><div class="l"></div><div class="l"></div><div class="name">…</div><div class="sub">and more</div></div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="one">
+        <div class="top"></div>
+        <b class="display" style="font-size:1.3em">Control Center</b>
+        <div style="color:var(--ink-2);font-size:.85em;margin-top:.2em">One login per door. One menu. One look. The customer feels one product.</div>
+        <div class="doors">
+          <div class="door"><b>Merchants</b><span>app.etrusted.com</span></div>
+          <div class="door"><b>Employees</b><span>employees.trustedshops.com</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Each old tool had its own login, its own menu, and its own look. Customers noticed. So did support.</span><span>2 / 8</span></div>
+</section>
+
+<!-- 3 -->
+<section class="slide" data-notes="n3">
+  <div class="eyebrow">The mental model</div>
+  <h2 class="display">The Control Center is a smartphone. Plugins are the apps.</h2>
+  <div class="body">
+    <div class="phone-row">
+      <div class="phone">
+        <div class="apps">
+          <div class="app hi">Review Inbox</div>
+          <div class="app">Guarantees</div>
+          <div class="app">Trustmark</div>
+          <div class="app">Invites</div>
+          <div class="app hi">Self-Service</div>
+          <div class="app">SEO Profile</div>
+          <div class="app">Widgets</div>
+          <div class="app">Settings</div>
+          <div class="app">+</div>
+        </div>
+        <div class="os">PLATFORM<br>LOGIN · MENU · DESIGN</div>
+      </div>
+      <div class="map">
+        <div class="k">The phone</div><div class="v"><b>The Control Center itself.</b> One for merchants, one for employees. The Control Center team owns it, and builds some apps too.</div>
+        <div class="k">The apps</div><div class="v"><b>The plugins.</b> Review Inbox, Invites, Guarantees, Self-Service. Each team builds and owns its own. Self-Service is one of ours.</div>
+        <div class="k">The app store</div><div class="v"><b>How a plugin goes live.</b> A team publishes it, and it appears in the menu. The Control Center itself does not change.</div>
+        <div class="k">The operating system</div><div class="v"><b>What every app gets.</b> Login, permissions, the menu, the design, and the numbers. No team builds these twice.</div>
+        <div class="k">The rule</div><div class="v"><b>One app cannot break another.</b> Each plugin runs in its own box. A problem in Invites does not stop the Review Inbox.</div>
+      </div>
+    </div>
+    <div class="me"><span class="k">Where I come in</span><span class="v">I know how the phone works on the inside. When a team plans an app, I tell them what the phone already does and what they need to build.</span></div>
+  </div>
+  <div class="foot"><span>A merchant does not see the phone. A merchant sees one Control Center.</span><span>3 / 8</span></div>
+</section>
+
+<!-- 4 -->
+<section class="slide" data-notes="n4">
+  <div class="eyebrow">What every team gets for free</div>
+  <h2 class="display">A new plugin starts with these already solved.</h2>
+  <div class="body">
+    <div class="grid free">
+      <div class="card"><h3>Login</h3><p>The customer signs in once and reaches every plugin.</p><small>Nobody builds a second login.</small></div>
+      <div class="card"><h3>Permissions and booked products</h3><p>A user sees only what the account has booked and what the role allows.</p><small>Upsell and access follow one rule.</small></div>
+      <div class="card"><h3>Menu and pages</h3><p>The plugin gets its place in the menu and its own web address.</p><small>Support can send a direct link.</small></div>
+      <div class="card"><h3>Design</h3><p>Buttons, tables, and forms come ready-made in the Trusted Shops look.</p><small>Every plugin looks like one product.</small></div>
+      <div class="card"><h3>Feature switches</h3><p>A team switches a feature on for some customers first, and off again without a release.</p><small>Safe pilots. Fast rollback.</small></div>
+      <div class="card"><h3>Usage numbers</h3><p>Page views and clicks land in the analytics tools without extra setup.</p><small>Product decisions with data.</small></div>
+      <div class="card"><h3>Health monitoring</h3><p>We see when a plugin is slow or broken, often before the customer calls.</p><small>Fewer surprises for support.</small></div>
+      <div class="card"><h3>Release path</h3><p>A tested plugin moves from a test stage to a check stage to production.</p><small>Same path for every team.</small></div>
+    </div>
+    <div class="me"><span class="k">Where I come in</span><span class="v">I make sure a team uses these eight instead of building their own. That is the difference between weeks and months.</span></div>
+  </div>
+  <div class="foot"><span>Product teams build product. Not plumbing.</span><span>4 / 8</span></div>
+</section>
+
+<!-- 5 -->
+<section class="slide" data-notes="n5">
+  <div class="eyebrow">Today, in numbers</div>
+  <h2 class="display">The platform is not a plan. It is the product.</h2>
+  <div class="body">
+    <div class="grid nums">
+      <div class="num"><div class="n hl">37</div><div class="l">live plugins</div><div class="d">in the merchant and the employee Control Center</div></div>
+      <div class="num"><div class="n">8</div><div class="l">teams</div><div class="d">each ships on its own schedule</div></div>
+      <div class="num"><div class="n">2</div><div class="l">Control Centers</div><div class="d">one for merchants, one for employees</div></div>
+      <div class="num"><div class="n">2</div><div class="l">separate logins</div><div class="d">merchants and employees stay apart, for security</div></div>
+    </div>
+    <div class="grid" style="grid-template-columns: repeat(2, 1fr); margin-top: 1.6em">
+      <div class="card"><span class="tag">What merchants use</span><p style="margin-top:.5em">Review Inbox, Invites, Reputation Manager, Channel Settings, Widgets, Notifications, Smart Review Assistant, Trustmark, Upgrade Center, Guarantees, Self-Service.</p></div>
+      <div class="card"><span class="tag">What we use internally</span><p style="margin-top:.5em">Master data, Data deletion, Import validator, Template lab, Analytics dashboards, Client management, Plugin management, Task management.</p></div>
+    </div>
+    <div class="me"><span class="k">Where I come in</span><span class="v">Every one of these 37 plugins went through the platform. Many of them went through me, at the start, in a review, or when something broke.</span></div>
+  </div>
+  <div class="foot"><span>Counts from the workspace, August 2026.</span><span>5 / 8</span></div>
+</section>
+
+<!-- 6 -->
+<section class="slide" data-notes="n6">
+  <div class="eyebrow">What this changes for the company</div>
+  <h2 class="display">Example: Self-Service, our own plugin. From idea to live in weeks.</h2>
+  <div class="body">
+    <div class="story">
+      <div class="timeline">
+        <div class="tl"><div class="when">The problem</div><div class="what"><b>Merchants called support</b> for invoices, company data, and payment details.</div></div>
+        <div class="tl"><div class="when">July 2025</div><div class="what"><b>The Control Center team starts</b> with the plugin template. Login, menu, design, and release path are already there.</div></div>
+        <div class="tl"><div class="when">Weeks later</div><div class="what"><b>First version in the test stage.</b> The team switched it on for a small group of customers first.</div></div>
+        <div class="tl"><div class="when">Today</div><div class="what"><b>Live at app.etrusted.com/settings/accounts.</b> Invoices, company data, and payment data. The merchant helps themself.</div></div>
+      </div>
+      <div class="wins">
+        <div class="win"><h3>Less support work</h3><p>Fewer tickets for routine requests. Support has time for the hard cases.</p></div>
+        <div class="win"><h3>We use our own platform</h3><p>The Control Center team owns the platform and some plugins. Self-Service is one of them. We build with the same tools we give to other teams.</p></div>
+        <div class="win"><h3>One product feeling</h3><p>The new pages look and behave like the rest of the Control Center from day one.</p></div>
+        <div class="win"><h3>Same story, 37 times</h3><p>This is how every plugin arrives. The platform makes the fast path the normal path.</p></div>
+      </div>
+    </div>
+    <div class="me"><span class="k">Where I come in</span><span class="v">This one was our own plugin, so I was in it from the first day: planning, platform parts, risks, and size of the work. For other teams I do the same at their planning table.</span></div>
+  </div>
+  <div class="foot"><span>Self-Service is one of the newest plugins. Any team starts the next one the same way.</span><span>6 / 8</span></div>
+</section>
+
+<!-- 7 -->
+<section class="slide" data-notes="n7">
+  <div class="eyebrow">Teams and each other</div>
+  <h2 class="display">Teams do not wait for each other. They agree, then work in parallel.</h2>
+  <div class="body">
+    <div class="talk">
+      <div class="plug"><div class="t">Reviews team</div><h3>Review Inbox</h3><p>Wants to show: "This order has buyer protection."</p></div>
+      <div class="via"><span class="x">✕</span>no direct link<br>between the two plugins</div>
+      <div class="plug"><div class="t">Guarantees team</div><h3>Guarantees plugin</h3><p>Knows the guarantee status of every order.</p></div>
+      <div class="bus">The platform passes the information from one plugin to the other.</div>
+    </div>
+    <div class="rules">
+      <div><b>Step 1: agree on the question.</b> "For this order, is there buyer protection: yes or no?" Both teams sign off on that one sentence.</div>
+      <div><b>Step 2: work in parallel.</b> Reviews builds the display with test data. Guarantees builds the real answer. Nobody waits.</div>
+      <div><b>Step 3: connect.</b> When Guarantees is ready, the platform connects the two. Each team keeps its ownership.</div>
+    </div>
+    <div class="me"><span class="k">Where I come in</span><span class="v">I help two teams find that one sentence and make sure the connection goes through the platform, not around it. That is what keeps 8 teams from stepping on each other.</span></div>
+  </div>
+  <div class="foot"><span>This is why one team's release day is not another team's problem.</span><span>7 / 8</span></div>
+</section>
+
+<!-- 8 -->
+<section class="slide s8" data-notes="n8">
+  <div class="eyebrow">Talk to me</div>
+  <div class="body">
+    <h1 class="display big">Ask Alex.</h1>
+    <p class="pitch">I help teams create new plugins, improve existing ones, and solve the technical problems around them. I know how the Control Center works on the inside, from infrastructure to design, so your team builds on the right foundation and does not learn the hard lessons twice.</p>
+    <div class="grid asks">
+      <div class="card"><p class="q">"We have an idea for the Control Center. Is it possible? How big is it?"</p><p>I give you an honest first answer in one meeting, before anyone writes a ticket.</p></div>
+      <div class="card"><p class="q">"A customer says something in the Control Center is broken or slow."</p><p>Bring me the case. I find which plugin, which team, and what the cause is.</p></div>
+      <div class="card"><p class="q">"Our team starts a new feature and needs a technical partner."</p><p>I join the planning, pick the right platform parts, and stay reachable until it is live.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span>Alexandr (Alex) Stoian · alexandr.stoian@trustedshops.com</span><span>8 / 8</span></div>
+</section>
+
+</div>
+
+<div class="hud" id="hud" aria-label="Slides"></div>
+<div class="help"><kbd>←</kbd> <kbd>→</kbd> slides &nbsp; <kbd>N</kbd> notes &nbsp; <kbd>T</kbd> theme &nbsp; <kbd>P</kbd> print</div>
+<button class="theme" id="theme" aria-label="Switch light or dark theme">Dark</button>
+
+<aside class="notes" id="notes" aria-label="Speaker notes">
+  <template id="n1"><h4>Slide 1 <span class="time">0:45</span></h4>
+    <p>Hello everyone. My name is Alex. I work on the Control Center. I am the technical expert for plugins.</p>
+    <p>Let me start with one fact. Look at app.etrusted.com. Every page you see there is a plugin. The review inbox is a plugin. The invoice page is a plugin. The small bell for notifications is a plugin too.</p>
+    <p>In the next ten minutes I will explain three things. What the Control Center is. Why it is good for our company. And what my job is.</p>
+    <p>I will not show code. I promise.</p>
+    <p class="cue">Cue: do not explain the word "plugin" here. Slide 3 does that.</p></template>
+
+  <template id="n2"><h4>Slide 2 <span class="time">1:00</span></h4>
+    <p>Let us go back to 2019. A merchant had many different tools from us. My TS. The eTrusted Control Center. The Upgrade Center. A separate tool for guarantees. And more.</p>
+    <p>Every tool had its own login. Its own menu. Its own look.</p>
+    <p>This was bad for two reasons. First, it was expensive. Every team built login, menu and design again and again. Second, the customer did not feel one product. The customer felt many small products. Support felt it too. "Which tool do you mean?"</p>
+    <p>So we built one house with two doors. One door for merchants: app.etrusted.com. One door for us, the employees: employees.trustedshops.com.</p></template>
+
+  <template id="n3"><h4>Slide 3 <span class="time">1:15</span></h4>
+    <p>Here is the easiest way to understand it. Think about your smartphone.</p>
+    <p>The phone is the Control Center. The Control Center team owns the phone. We also build some of the apps.</p>
+    <p>The apps are the plugins. Review Inbox is an app. Invites is an app. Self-Service is an app. Each team builds its own app and owns it. Self-Service is one of ours.</p>
+    <p>When a team is ready, it publishes the plugin. The plugin appears in the menu. Like a new app after you install it. The phone itself does not change.</p>
+    <p>The phone also gives every app some things for free. Login. Permissions. The menu. The design. No team builds these again.</p>
+    <p>And there is one rule. One app cannot break another app. If Invites has a problem, the Review Inbox still works.</p>
+    <p>Where do I come in? I know how the phone works inside. When a team plans a new app, I tell them: this part the phone already does. This part you need to build.</p></template>
+
+  <template id="n4"><h4>Slide 4 <span class="time">1:15</span></h4>
+    <p>This slide shows what a team gets on day one. Before they build anything.</p>
+    <p>Login. The customer logs in one time and can use every plugin.</p>
+    <p>Permissions. A user only sees what the account has booked. Nothing more.</p>
+    <p>Menu and pages. The plugin gets its place in the menu and its own link. Support can send this link to a customer.</p>
+    <p>Design. Buttons, tables and forms are ready. Everything looks like Trusted Shops.</p>
+    <p>Feature switches. A team can turn a feature on for a few customers first. If something is wrong, they turn it off. No release is needed.</p>
+    <p>Usage numbers. We see how many people use a plugin.</p>
+    <p>Health monitoring. We see when a plugin is slow or broken. Often before the customer calls.</p>
+    <p>Release path. Every plugin goes the same way to production.</p>
+    <p>My job here: I make sure a team uses these eight things. And does not build them again. This is the difference between weeks and months.</p>
+    <p class="cue">Cue: if time is short, read only login, feature switches and health monitoring.</p></template>
+
+  <template id="n5"><h4>Slide 5 <span class="time">0:45</span></h4>
+    <p>Some numbers. These are from this month.</p>
+    <p>37 plugins are live today. 8 teams build them. Each team releases when it wants. We have two Control Centers. One for merchants, one for us. Each one has its own login. Merchants and employees stay separate. This is for security.</p>
+    <p>On the left you see what merchants use. On the right you see what we use inside the company.</p>
+    <p>Every one of these 37 plugins went through the platform. And many of them went through me. At the start. In a review. Or when something was broken.</p></template>
+
+  <template id="n6"><h4>Slide 6 <span class="time">1:30</span></h4>
+    <p>What does this mean for the company? Let me show one example. Self-Service. This is a plugin from my own team, the Control Center team.</p>
+    <p>The problem was simple. Merchants called support for small things. "Send me my invoice." "Change my company address." "Update my payment data."</p>
+    <p>In July 2025 we started to build a plugin for this. We started with the plugin template. Login, menu, design and release path were already there. We only built the product.</p>
+    <p>A few weeks later, the first version was on the test stage. We turned it on for a small group of customers first.</p>
+    <p>Today it is live. Settings, Accounts. Invoices, company data, payment data. The merchant does it alone. No call to support.</p>
+    <p>Three results. Less routine work for support. We used our own platform, with the same tools we give to other teams. And the new pages looked like the rest of the Control Center from day one.</p>
+    <p>This is not a special story. This is the normal way. Every new plugin starts like this.</p>
+    <p>My part: this was our own plugin, so I was in it from day one. Planning, platform parts, risks, size of the work. For other teams I do the same. I sit at their table when they plan, and I stay reachable until the plugin is live.</p></template>
+
+  <template id="n7"><h4>Slide 7 <span class="time">1:00</span></h4>
+    <p>One more important thing. How do 8 teams work in one product without blocking each other?</p>
+    <p>Example. The Review Inbox wants to show: "This order has buyer protection." But only the Guarantees team knows this.</p>
+    <p>Step one. The two teams agree on one question. "For this order, is there buyer protection? Yes or no?" That is all.</p>
+    <p>Step two. Both teams work at the same time. The Reviews team builds the display with test data. The Guarantees team builds the real answer. Nobody waits.</p>
+    <p>Step three. When both are ready, the platform connects them. Each team keeps its own plugin. Nobody touches the other team's code.</p>
+    <p>My part: I help the two teams find that one question. And I make sure the connection goes through the platform. Not around it.</p></template>
+
+  <template id="n8"><h4>Slide 8 <span class="time">1:00</span></h4>
+    <p>So, what is my job in one sentence? I help teams to build new plugins, to improve old plugins, and to fix technical problems around them.</p>
+    <p>I know how the Control Center works inside. From the infrastructure to the design. So your team builds on a good base. And you do not repeat mistakes that other teams already made.</p>
+    <p>When should you talk to me? Three situations.</p>
+    <p>One. You have an idea for the Control Center. You want to know: is it possible? How big is it? Come to me. You get an honest first answer in one meeting.</p>
+    <p>Two. A customer says something is broken or slow. Bring me the case. I find the plugin, the team and the cause.</p>
+    <p>Three. Your team starts a new feature and needs a technical partner. I join the planning and stay with you until it is live.</p>
+    <p>And if you still do not know what a plugin is: ask Alex anyway. Thank you.</p>
+    <p class="cue">Cue: stop. Five minutes for questions.</p></template>
+  <div id="notesBody"></div>
+</aside>
+
+<script>
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var hud = document.getElementById('hud');
+  var notes = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+  var i = 0;
+  try { i = Math.min(slides.length - 1, Math.max(0, parseInt(location.hash.slice(1), 10) - 1 || 0)); } catch (e) { i = 0; }
+
+  slides.forEach(function (_, k) {
+    var b = document.createElement('button');
+    b.setAttribute('aria-label', 'Slide ' + (k + 1));
+    b.addEventListener('click', function () { go(k); });
+    hud.appendChild(b);
+  });
+
+  function go(n) {
+    i = (n + slides.length) % slides.length;
+    slides.forEach(function (s, k) { s.classList.toggle('active', k === i); });
+    Array.prototype.forEach.call(hud.children, function (b, k) { b.classList.toggle('on', k === i); });
+    var t = document.getElementById(slides[i].getAttribute('data-notes'));
+    notesBody.innerHTML = '';
+    if (t) notesBody.appendChild(t.content.cloneNode(true));
+    try { history.replaceState(null, '', '#' + (i + 1)); } catch (e) {}
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(i + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(i - 1); }
+    else if (e.key === 'Home') { go(0); }
+    else if (e.key === 'End') { go(slides.length - 1); }
+    else if (e.key === 'n' || e.key === 'N') { notes.classList.toggle('open'); }
+    else if (e.key === 't' || e.key === 'T') { toggleTheme(); }
+    else if (e.key === 'p' || e.key === 'P') { window.print(); }
+  });
+
+  var x0 = null;
+  document.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0; x0 = null;
+    if (Math.abs(dx) > 50) go(dx < 0 ? i + 1 : i - 1);
+  });
+
+  var root = document.documentElement, tbtn = document.getElementById('theme');
+  function isDark() {
+    var t = root.getAttribute('data-theme');
+    if (t) return t === 'dark';
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  function paintTheme() { tbtn.textContent = isDark() ? 'Light' : 'Dark'; }
+  function toggleTheme() {
+    var next = isDark() ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('cc-deck-theme', next); } catch (e) {}
+    paintTheme();
+  }
+  try { var saved = localStorage.getItem('cc-deck-theme'); if (saved) root.setAttribute('data-theme', saved); } catch (e) {}
+  tbtn.addEventListener('click', toggleTheme);
+  paintTheme();
+
+  go(i);
+})();
+</script>
+
+</body>
+</html>
