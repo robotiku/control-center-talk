@@ -131,9 +131,10 @@
   .rule span { color: var(--ink-2); font-size: .85em; }
 
   /* slide 8 */
-  .s8 .pitch { font-size: 1.35em; max-width: 26em; margin: 0; color: var(--ink-2); }
-  .asks { grid-template-columns: repeat(3, 1fr); margin-top: 1.6em; }
-  .asks .card { border-top: 4px solid var(--accent); font-size: 1.05em; font-style: italic; }
+  .s8 .pitch { font-size: 1.3em; max-width: 32em; margin: 0; }
+  .asks { grid-template-columns: repeat(3, 1fr); margin-top: 1.4em; }
+  .asks .card { border-top: 4px solid var(--accent); }
+  .asks .card .q { font-style: italic; color: var(--ink); font-size: .95em; margin: 0 0 .4em; }
   .s8 .big { font-size: 4.6em; }
 
   /* chrome */
@@ -336,11 +337,11 @@
   <div class="eyebrow">Talk to me</div>
   <div class="body">
     <h1 class="display big">Ask Alex.</h1>
-    <p class="pitch">New plugins. Better plugins. Technical problems around them.</p>
+    <p class="pitch">I help teams create new plugins, improve existing ones, and solve the technical problems around them. I know how the Control Center works on the inside, from infrastructure to design, so your team builds on the right foundation and does not learn the hard lessons twice.</p>
     <div class="grid asks">
-      <div class="card frag">"We have an idea. Is it possible? How big is it?"</div>
-      <div class="card frag">"A customer says something is broken or slow."</div>
-      <div class="card frag">"Our team starts a feature and needs a technical partner."</div>
+      <div class="card frag"><p class="q">"We have an idea for the Control Center. Is it possible? How big is it?"</p><p>I give you an honest first answer in one meeting, before anyone writes a ticket.</p></div>
+      <div class="card frag"><p class="q">"A customer says something in the Control Center is broken or slow."</p><p>Bring me the case. I find which plugin, which team, and what the cause is.</p></div>
+      <div class="card frag"><p class="q">"Our team starts a new feature and needs a technical partner."</p><p>I join the planning, pick the right platform parts, and stay reachable until it is live.</p></div>
     </div>
   </div>
   <div class="foot"><span>Alexandr (Alex) Stoian · alexandr.stoian@trustedshops.com</span><span>8 / 8</span></div>
