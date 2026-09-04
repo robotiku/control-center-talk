@@ -557,7 +557,7 @@
     hud.appendChild(b);
   });
 
-  var auto = true, timer = null, paused = false;
+  var AUTO_MS = 3000, auto = true, timer = null, paused = false;
 
   function frags(s) { return Array.prototype.slice.call(s.querySelectorAll('.frag')); }
   function pending(s) { return frags(s).filter(function (f) { return !f.classList.contains('in'); }); }
@@ -565,18 +565,7 @@
 
   function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
 
-  // one reveal per slice of the slide's own speech time, so the picture follows the words
-  function slideSeconds(idx) {
-    var t = document.getElementById(slides[idx].getAttribute('data-notes'));
-    var m = t && /(\d+):(\d\d)/.exec(t.innerHTML);
-    return m ? (+m[1]) * 60 + (+m[2]) : 60;
-  }
-
-  function autoInterval(idx) {
-    var n = frags(slides[idx]).length;
-    if (!n) return 0;
-    return Math.max(1200, Math.min(20000, slideSeconds(idx) * 1000 / (n + 1)));
-  }
+  function autoInterval(idx) { return frags(slides[idx]).length ? AUTO_MS : 0; }
 
   function startTimer() {
     stopTimer();
