@@ -49,6 +49,9 @@
   /* step reveal */
   .frag { opacity: 0; transform: translateY(14px); transition: opacity .35s ease, transform .35s ease; }
   .frag.in { opacity: 1; transform: none; }
+  /* Overlays on the screenshot must never carry a transform: a transformed box becomes the
+     positioning context of its absolute children, which makes them collapse while they fade. */
+  .shot .frag, .shot .frag.in { transform: none; transition: opacity .45s ease; }
   @media (prefers-reduced-motion: reduce) { .frag { transition: none; transform: none; } }
 
   .me { display: grid; grid-template-columns: auto 1fr; gap: 1em; align-items: center; margin-top: 1.4em; background: var(--accent); color: var(--accent-ink); padding: .6em 1em; }
